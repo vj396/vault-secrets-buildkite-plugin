@@ -1,0 +1,24 @@
+name: Vault-Secrets
+description: Vault plugin to expose secrets as environment variables in BK pipelines.
+author: https://github.com/vj396
+requirements:
+  - docker
+  - jq
+configuration:
+  properties:
+    image:
+      type: string
+      description: The `vault` image to use; defaults to `hashicorp/envconsul`
+    tag:
+      type: string
+      description: The `vault` image tag to use; defaults to `latest`
+    address:
+      type: string
+      description: The address of the Vault server to interact with. Should include protocol, server, and port (corresponds to 'VAULT_ADDR')
+    token:
+      type: string
+      description: The `vault` token that will be used to fetch secrets. (corresponds to 'VAULT_TOKEN')
+    env:
+      description: An object map of secrets to inject into the environment
+      type: object
+  additionalProperties: false

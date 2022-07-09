@@ -1,0 +1,7 @@
+version: "3.6"
+services:
+  lint:
+    image: buildkite/plugin-linter
+    command: ['--id', 'vj396/vault-secrets']
+    volumes:
+      - ".:/plugin:ro"
