@@ -33,7 +33,7 @@ function vault_auth_aws() {
 }
 EOF
 )
-  response=$(curl --request POST --fail --data "$data" "$auth_url")
+  response=$(curl --request POST --fail-with-body --data "$data" "$auth_url")
   export VAULT_TOKEN=$(echo $response | jq -r .auth.client_token)
 }
 
