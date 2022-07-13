@@ -36,6 +36,7 @@ steps:
             method: aws # optional. defaults to vault login method `aws`
             role: example-role # optional. defaults to vault aws auth role `buildkite`
             path: aws/custom/path # optional. Vault Auth backend path. defaults to `aws`
+            header: vault.service.consul # optional. Defaults to vault_addr server name
           env:
             MY_SECRET: secret/foo # where foo is the secret key
             MY_OTHER_SECRET: secret/path/foo # Where secret/path is the vault path to the secret and foo is the secret key

@@ -1,11 +1,8 @@
 #!/usr/bin/env bash
 
 SIGN_REQUEST_FILE_URL="https://raw.githubusercontent.com/hashicorp/terraform-aws-vault/master/examples/vault-consul-ami/auth/sign-request.py"
-SIGN_REQUEST_FILE_PATH="${HOME}/.custom/sign_requests.py"
+SIGN_REQUEST_FILE_PATH="/tmp/sign_requests.py"
 function download_request_signer_script() {
-  if [ ! -d "$HOME/.custom" ]; then
-    mkdir -p $HOME/.custom
-  fi
   if [ ! -f "${SIGN_REQUEST_FILE_PATH}" ]; then
     echo "--- downloading sign_requests.py from ${SIGN_REQUEST_FILE_URL}"
     curl -sL -o $SIGN_REQUEST_FILE_PATH $SIGN_REQUEST_FILE_URL
@@ -19,7 +16,9 @@ function vault_auth_aws() {
   if [ -n "${BUILDKITE_PLUGIN_VAULT_SECRETS_AUTH_PATH:-"aws"}" ]; then
     auth_url="${auth_url}/${BUILDKITE_PLUGIN_VAULT_SECRETS_AUTH_PATH:-"aws"}/login"
   fi
-  VAULT_IAM_SERVER_HEADER=$(echo ${VAULT_ADDR} | sed 's/.*:\/\///' | sed 's/:.*//' | sed 's/\/.*//')
+  if [ -n "${BUILDKITE_PLUGIN_VAULT_SECRETS_AUTH_HEADER:-${VAULT_ADDR}}" ]; then
+    VAULT_IAM_SERVER_HEADER=$(echo ${BUILDKITE_PLUGIN_VAULT_SECRETS_AUTH_HEADER:-${VAULT_ADDR}} | sed 's/.*:\/\///' | sed 's/:.*//' | sed 's/\/.*//')
+  fi
   signed_request=$(python ${SIGN_REQUEST_FILE_PATH} ${VAULT_IAM_SERVER_HEADER})
   iam_request_url=$(echo $signed_request | jq -r .iam_request_url)
   iam_request_body=$(echo $signed_request | jq -r .iam_request_body)
