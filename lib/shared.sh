@@ -19,6 +19,8 @@ function vault_auth_aws() {
   if [ -n "${BUILDKITE_PLUGIN_VAULT_SECRETS_AUTH_HEADER:-${VAULT_ADDR}}" ]; then
     VAULT_IAM_SERVER_HEADER=$(echo ${BUILDKITE_PLUGIN_VAULT_SECRETS_AUTH_HEADER:-${VAULT_ADDR}} | sed 's/.*:\/\///' | sed 's/:.*//' | sed 's/\/.*//')
   fi
+  echo "--- Auth URL: ${auth_url}"
+  echo "--- Vault IAM Server Header: ${VAULT_IAM_SERVER_HEADER}"
   signed_request=$(python ${SIGN_REQUEST_FILE_PATH} ${VAULT_IAM_SERVER_HEADER})
   iam_request_url=$(echo $signed_request | jq -r .iam_request_url)
   iam_request_body=$(echo $signed_request | jq -r .iam_request_body)
@@ -34,6 +36,7 @@ function vault_auth_aws() {
 EOF
 )
   response=$(curl --request POST --data "$data" "$auth_url")
+  echo "--- Response: ${response}"
   export VAULT_TOKEN=$(echo $response | jq -r .auth.client_token)
 }
 
