@@ -2,6 +2,13 @@
 
 set -euo pipefail
 
+_source="${BASH_SOURCE[0]}"
+[ -z "${_source:-}" ] && _source="${0}"
+basedir="$( cd "$( dirname "${_source}" )" && cd .. && pwd )"
+
+# shellcheck disable=SC1090
+. "$basedir/lib/shared.sh"
+
 readonly default_image="vault"
 readonly default_tag="1.10.2"
 readonly image="${BUILDKITE_PLUGIN_VAULT_SECRETS_IMAGE:-${default_image}}:${BUILDKITE_PLUGIN_VAULT_SECRETS_TAG:-${default_tag}}"
@@ -11,11 +18,17 @@ readonly container_name="vault-secrets-env-plugin-${BUILDKITE_JOB_ID}"
 ########################################################################
 if [ -n "${BUILDKITE_PLUGIN_VAULT_SECRETS_TOKEN:-}" ]; then
     VAULT_TOKEN="${BUILDKITE_PLUGIN_VAULT_SECRETS_TOKEN}"
-    export VAULT_ADDR
+    export VAULT_TOKEN
 fi
+
 if [ -z "${VAULT_TOKEN:-}" ]; then
+  if [ -n "${BUILDKITE_PLUGIN_VAULT_SECRETS_AUTH_METHOD:-"aws"}" ]; then
+    vault_auth_${BUILDKITE_PLUGIN_VAULT_SECRETS_AUTH_METHOD:-"aws"}
+  fi
+  if [ -z "${VAULT_TOKEN:-}" ]; then
     echo "--- :skull_and_crossbones: Could not find 'VAULT_TOKEN' in the environment!"
     exit 1
+  fi
 fi
 
 # Resolve Vault address
@@ -28,50 +41,6 @@ if [ -z "${VAULT_ADDR:-}" ]; then
     echo "--- :skull_and_crossbones: Could not find 'VAULT_ADDR' in the environment, and 'BUILDKITE_PLUGIN_VAULT_SECRETS_ADDRESS' was not specified!"
     exit 1
 fi
-
-# Helper Functions
-function strip_quotes() {
-  echo "${1}" | sed "s/^[[:blank:]]*//g;s/[[:blank:]]*$//g;s/[\"']//g"
-}
-
-cleanup() {
-    docker container rm --force "${container_name}" > /dev/null 2>&1
-}
-
-function get_secret_value() {
-  local secretPath="$1"
-  local secretKey="$2"
-  local secrets;
-  cleanup
-  echo -e "\033[31m" >&2
-  secrets=$(docker run \
-      --cap-add IPC_LOCK \
-      --env VAULT_TOKEN="${VAULT_TOKEN}" \
-      --name="${container_name}" \
-      -- \
-      "${image}" \
-      vault kv get \
-      -address "${VAULT_ADDR}" \
-      -format=json \
-      "${secretPath}")
-  local result=$?
-  echo -e "\033[0m" >&2
-  if [[ $result -ne 0 ]]; then
-    docker container logs "${container_name}"
-    exit 1
-  fi
-  echo "${secrets}" | jq -r .data.data."${secretKey}"
-}
-
-load_secret_into_env() {
-  local export_name="$1"
-  local secret_path="$2"
-  local secret_key="$3"
-  local secret_value
-  echo "Reading ${secret_path}/${secret_key} from Vault into environment variable ${export_name}"
-  secret_value="$(get_secret_value "${secret_path}" "${secret_key}")"
-  export "${export_name}=${secret_value}"
-}
 
 # main logic
 trap cleanup EXIT INT QUIT

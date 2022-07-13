@@ -18,6 +18,9 @@ configuration:
     token:
       type: string
       description: The `vault` token that will be used to fetch secrets. (corresponds to 'VAULT_TOKEN')
+    auth:
+      description: An object map of auth metadata to authenticate with vault and fetch a vault token
+      type: object
     env:
       description: An object map of secrets to inject into the environment
       type: object

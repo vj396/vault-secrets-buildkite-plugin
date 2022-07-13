@@ -8,6 +8,7 @@ Only support KVV2 vault secrets backend.
 
 Add the following to your `pipeline.yml`:
 
+### Example with Vault Token
 ```yml
 steps:
   - command: ls
@@ -22,6 +23,23 @@ steps:
             MY_OTHER_SECRET: secret/path/foo # Where secret/path is the vault path to the secret and foo is the secret key
 ```
 
+### Example with Auth Metadata
+```yml
+steps:
+  - command: ls
+    plugins:
+      - vj396/vault-secrets#v0.1.0:
+          image: 'vault' # optional. Defaults to https://hub.docker.com/_/vault
+          tag: "1.10.2" # optional. Defaults to 1.10.2
+          address: "http://vault-server:8200" # optional. plugin will error when VAULT_ADDR is also not in env.
+          auth:
+            method: aws # optional. defaults to vault login method `aws`
+            role: example-role # optional. defaults to vault aws auth role `buildkite`
+            path: aws/custom/path # optional. Vault Auth backend path. defaults to `aws`
+          env:
+            MY_SECRET: secret/foo # where foo is the secret key
+            MY_OTHER_SECRET: secret/path/foo # Where secret/path is the vault path to the secret and foo is the secret key
+```
 ## Developing
 
 ### Test
