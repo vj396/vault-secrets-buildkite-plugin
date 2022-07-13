@@ -2,34 +2,10 @@
 
 set -euo pipefail
 
-_source="${BASH_SOURCE[0]}"
-[ -z "${_source:-}" ] && _source="${0}"
-basedir="$( cd "$( dirname "${_source}" )" && cd .. && pwd )"
-
-# shellcheck disable=SC1090
-. "$basedir/lib/shared.sh"
-
 readonly default_image="vault"
 readonly default_tag="1.10.2"
 readonly image="${BUILDKITE_PLUGIN_VAULT_SECRETS_IMAGE:-${default_image}}:${BUILDKITE_PLUGIN_VAULT_SECRETS_TAG:-${default_tag}}"
 readonly container_name="vault-secrets-env-plugin-${BUILDKITE_JOB_ID}"
-
-# Fail if there is no Vault token; need to be able to auth with vault.
-########################################################################
-if [ -n "${BUILDKITE_PLUGIN_VAULT_SECRETS_TOKEN:-}" ]; then
-    VAULT_TOKEN="${BUILDKITE_PLUGIN_VAULT_SECRETS_TOKEN}"
-    export VAULT_TOKEN
-fi
-
-if [ -z "${VAULT_TOKEN:-}" ]; then
-  if [ -n "${BUILDKITE_PLUGIN_VAULT_SECRETS_AUTH_METHOD:-"aws"}" ]; then
-    vault_auth_${BUILDKITE_PLUGIN_VAULT_SECRETS_AUTH_METHOD:-"aws"}
-  fi
-  if [ -z "${VAULT_TOKEN:-}" ]; then
-    echo "--- :skull_and_crossbones: Could not find 'VAULT_TOKEN' in the environment!"
-    exit 1
-  fi
-fi
 
 # Resolve Vault address
 ########################################################################
@@ -40,6 +16,30 @@ fi
 if [ -z "${VAULT_ADDR:-}" ]; then
     echo "--- :skull_and_crossbones: Could not find 'VAULT_ADDR' in the environment, and 'BUILDKITE_PLUGIN_VAULT_SECRETS_ADDRESS' was not specified!"
     exit 1
+fi
+
+# Fail if there is no Vault token; need to be able to auth with vault.
+########################################################################
+if [ -n "${BUILDKITE_PLUGIN_VAULT_SECRETS_TOKEN:-}" ]; then
+    VAULT_TOKEN="${BUILDKITE_PLUGIN_VAULT_SECRETS_TOKEN}"
+    export VAULT_TOKEN
+fi
+
+_source="${BASH_SOURCE[0]}"
+[ -z "${_source:-}" ] && _source="${0}"
+basedir="$( cd "$( dirname "${_source}" )" && cd .. && pwd )"
+
+# shellcheck disable=SC1090
+. "$basedir/lib/shared.sh"
+
+if [ -z "${VAULT_TOKEN:-}" ]; then
+  if [ -n "${BUILDKITE_PLUGIN_VAULT_SECRETS_AUTH_METHOD:-"aws"}" ]; then
+    vault_auth_${BUILDKITE_PLUGIN_VAULT_SECRETS_AUTH_METHOD:-"aws"}
+  fi
+  if [ -z "${VAULT_TOKEN:-}" ]; then
+    echo "--- :skull_and_crossbones: Could not find 'VAULT_TOKEN' in the environment!"
+    exit 1
+  fi
 fi
 
 # main logic
