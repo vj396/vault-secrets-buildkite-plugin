@@ -33,7 +33,11 @@ function vault_auth_aws() {
 }
 EOF
 )
-  response=$(curl --request POST --fail-with-body --data "$data" "$auth_url")
+  if ! response=$(curl --request POST --fail-with-body --data "$data" "$auth_url");
+  then
+    echo "Request for Vault token failed with response body: $response"
+    exit 1
+  fi
   export VAULT_TOKEN=$(echo $response | jq -r .auth.client_token)
 }
 
