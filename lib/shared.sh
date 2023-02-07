@@ -17,12 +17,12 @@ function vault_auth_aws() {
     auth_url="${auth_url}/${BUILDKITE_PLUGIN_VAULT_SECRETS_AUTH_PATH:-"aws"}/login"
   fi
   if [ -n "${BUILDKITE_PLUGIN_VAULT_SECRETS_AUTH_HEADER:-${VAULT_ADDR}}" ]; then
-    VAULT_IAM_SERVER_HEADER=$(echo ${BUILDKITE_PLUGIN_VAULT_SECRETS_AUTH_HEADER:-${VAULT_ADDR}} | sed 's/.*:\/\///' | sed 's/:.*//' | sed 's/\/.*//')
+    VAULT_IAM_SERVER_HEADER=$(echo "${BUILDKITE_PLUGIN_VAULT_SECRETS_AUTH_HEADER:-${VAULT_ADDR}}" | sed 's/.*:\/\///' | sed 's/:.*//' | sed 's/\/.*//')
   fi
-  signed_request=$(python ${SIGN_REQUEST_FILE_PATH} ${VAULT_IAM_SERVER_HEADER})
-  iam_request_url=$(echo $signed_request | jq -r .iam_request_url)
-  iam_request_body=$(echo $signed_request | jq -r .iam_request_body)
-  iam_request_headers=$(echo $signed_request | jq -r .iam_request_headers)
+  signed_request=$(python ${SIGN_REQUEST_FILE_PATH} "${VAULT_IAM_SERVER_HEADER}")
+  iam_request_url=$(echo "$signed_request" | jq -r .iam_request_url)
+  iam_request_body=$(echo "$signed_request" | jq -r .iam_request_body)
+  iam_request_headers=$(echo "$signed_request" | jq -r .iam_request_headers)
   data=$(cat <<EOF
 {
   "role":"${BUILDKITE_PLUGIN_VAULT_SECRETS_AUTH_ROLE:-"buildkite"}",
@@ -34,7 +34,7 @@ function vault_auth_aws() {
 EOF
 )
   response=$(curl --request POST --fail-with-body --data "$data" "$auth_url")
-  export VAULT_TOKEN=$(echo $response | jq -r .auth.client_token)
+  export VAULT_TOKEN=$(echo "$response" | jq -r .auth.client_token)
 }
 
 function strip_quotes() {

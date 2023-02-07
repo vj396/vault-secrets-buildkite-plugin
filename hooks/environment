@@ -34,7 +34,7 @@ basedir="$( cd "$( dirname "${_source}" )" && cd .. && pwd )"
 
 if [ -z "${VAULT_TOKEN:-}" ]; then
   if [ -n "${BUILDKITE_PLUGIN_VAULT_SECRETS_AUTH_METHOD:-"aws"}" ]; then
-    vault_auth_${BUILDKITE_PLUGIN_VAULT_SECRETS_AUTH_METHOD:-"aws"}
+    vault_auth_"${BUILDKITE_PLUGIN_VAULT_SECRETS_AUTH_METHOD:-"aws"}"
   fi
   if [ -z "${VAULT_TOKEN:-}" ]; then
     echo "--- :skull_and_crossbones: Could not find 'VAULT_TOKEN' in the environment!"
