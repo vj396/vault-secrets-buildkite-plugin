@@ -6,7 +6,10 @@
   # https://devenv.sh/packages/
     packages = lib.optionals pkgs.stdenv.isDarwin (with pkgs.darwin.apple_sdk; [
       frameworks.Security
-    ]) ++ [ pkgs.shellcheck ];
+    ]) ++ [ 
+      pkgs.shellcheck
+      pkgs.bats 
+    ];
 
   # https://devenv.sh/scripts/
 
@@ -28,6 +31,15 @@
       # '-x' permits shellcheck to source library scripts
       # '--severity info' prevents pre-commit from failing on style issues
       raw.args = ["-x" "--severity" "info"]; 
+    };
+    bats = {
+      enable = true;
+      pass_filenames = false;
+      raw = {
+        always_run = true;
+        verbose = true;
+        args = ["bats-tests"];
+      };
     };
     clippy.enable = true;
     rustfmt.enable = true;
