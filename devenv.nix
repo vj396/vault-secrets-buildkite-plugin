@@ -12,8 +12,14 @@
     ];
 
   # https://devenv.sh/scripts/
+  scripts.check.exec = ''pre-commit run --all-files'';
 
-  enterShell = '''';
+  enterShell = ''
+    cat <<-HELP
+      Tips:
+      - 'check' will run all pre-commit checks, including unit tests and linters
+    HELP
+  '';
 
   # https://devenv.sh/languages/
   # languages.nix.enable = true;

@@ -28,3 +28,23 @@ function teardown {
     download_request_signer_script
     [[ -f $SIGN_REQUEST_FILE_PATH ]]
 }
+
+@test "Does 'strip_quotes' actually strip quotes?" {
+    [[ $(strip_quotes "        stuff") == "stuff" ]]
+    [[ $(strip_quotes "stuff       ") == "stuff" ]]
+    
+	quote_remover=$(cat <<- THING
+        '"stuff"'
+	THING
+    )
+    [[ $(strip_quotes "$quote_remover") == "stuff" ]]
+
+    all_together_now=$(cat <<- THING
+        ''""       stuff    ''""
+	THING
+    )
+    [[ $(strip_quotes "$quote_remover") == "stuff" ]]
+
+    # Need to consume vars to make shellcheck happy
+    echo "${quote_remover}${all_together_now}"  > /dev/null 2>&1
+}
